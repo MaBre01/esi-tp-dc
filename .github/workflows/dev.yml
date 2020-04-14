@@ -1,0 +1,85 @@
+name: Development deployment
+
+on:
+    push:
+        branches: [ dev ]
+    pull_request:
+        branches: [ dev ]
+        
+jobs:
+    test_app:
+        name: Test application
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Validate composer.json and composer.lock
+              run: composer validate
+              working-directory: ./app
+
+            - name: Install dependencies
+              run: composer install
+              working-directory: ./app
+            
+            - name: Test application
+              run: php bin/phpunit
+              working-directory: ./app
+
+    build_docker_image:
+        name: Build Docker image 
+        needs: test_app
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Build and push PHP image
+              uses: docker/build-push-action@v1
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_PASSWORD }}
+                repository: mabre/esi-tp-dc-php
+                dockerfile: ./.docker/php/Dockerfile
+                tags: dev
+                
+            - name: Build and push Nginx image
+              uses: docker/build-push-action@v1
+              with: 
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_PASSWORD }}
+                repository: mabre/esi-tp-dc-nginx
+                dockerfile: ./.docker/nginx/Dockerfile
+                tags: dev
+
+    deploy_on_server:
+        name: Deploy to server
+        needs: build_docker_image
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Deploy docker-compose files to server
+              uses: appleboy/scp-action@master
+              with:
+                host: ${{ secrets.HOST }}
+                username: ${{ secrets.USERNAME }}
+                password: ${{ secrets.PASSWORD }}
+                port: ${{ secrets.PORT }}
+                source: "docker-compose.yml,docker-compose.dev.yml"
+                target: ${{ secrets.TARGET_FOLDER }}
+
+            - name: Deploy on server on docker
+              uses: appleboy/ssh-action@master
+              with:
+                host: ${{ secrets.HOST }}
+                username: ${{ secrets.USERNAME }}
+                password: ${{ secrets.PASSWORD }}
+                port: ${{ secrets.PORT }}
+                script: |
+                    cd ~/${{ secrets.TARGET_FOLDER }}
+                    docker-compose pull
+                    docker-composer -f docker-compose.yml -f docker-compose.dev.yml up -d
