@@ -16,9 +16,11 @@ jobs:
 
             - name: Validate composer.json and composer.lock
               run: composer validate
+              working-directory: ./app
 
             - name: Install dependencies
               run: composer install
+              working-directory: ./app
 
             - name: Test application
               run: php bin/phpunit
