@@ -1,0 +1,47 @@
+version: '3.5'
+
+networks: 
+    default: {}
+    server_proxy:
+        external: true
+    server_db:
+        external: true
+
+volumes:
+    db: {}
+
+services: 
+    db:
+        image: mariadb:10.4
+        networks: 
+            - default
+            - server_db
+        volumes: 
+            - db:/var/lib/mysql
+            - ./.docker/mariadb/db-dumps:/docker-entrypoint-initdb.d
+
+    nginx:
+        working_dir: "/var/www/html"
+        networks: 
+            - default
+            - server_proxy
+        depends_on: 
+            - php
+        labels:
+            - traefik.enable=true
+            - traefik.port=80
+            - traefik.docker.network=server_proxy
+            - traefik.frontend.redirect.entryPoint=https
+            - ghosts.category=~project
+            - ghosts.description=Symfony application.
+            - ghosts.proto=https
+
+    php:
+        networks: 
+            - default
+        depends_on: 
+            - db
+        environment: 
+            - UID=${uid}
+            - GID=${gid}
+        tty: true

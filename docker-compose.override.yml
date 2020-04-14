@@ -1,0 +1,34 @@
+version: '3.5'
+
+networks: 
+    server_mail:
+        external: true
+
+services:
+    db:
+        environment: 
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=esi-app
+            - MYSQL_USER=esi-app
+            - MYSQL_PASSWORD=esi-app
+
+    nginx:
+        build: 
+            context: .
+            dockerfile: .docker/nginx/Dockerfile
+        volumes: 
+            - ./app:/var/www/html
+            - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+        labels: 
+            - traefik.frontend.rule=Host:esi-tp-dc.local
+            - ghosts.host=esi-tp-dc.local
+
+    php:
+        build:
+            context: .
+            dockerfile: .docker/php/Dockerfile
+        networks: 
+            - server_mail
+        volumes: 
+            - ./app:/var/www/html
+            - "~/.cache/composer:/home/www-data/.composer/cache"

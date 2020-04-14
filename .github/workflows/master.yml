@@ -1,0 +1,25 @@
+name: Test master branch
+
+on:
+    push:
+        branches: [ master ]
+    pull_request:
+        branches: [ master ]
+
+jobs:
+    test_app:
+        name: Test application
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Validate composer.json and composer.lock
+              run: composer Validate
+
+            - name: Install dependencies
+              run: composer install
+
+            - name: Test application
+              run: php bin/phpunit
+              working-directory: ./app
