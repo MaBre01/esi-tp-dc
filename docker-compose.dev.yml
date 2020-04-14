@@ -9,7 +9,7 @@ services:
             - MYSQL_PASSWORD=${$db_user_password}
 
     nginx:
-        image: MaBre01/esi-tp-dc-nginx:dev
+        image: mabre/esi-tp-dc-nginx:dev
         labels: 
             - traefik.frontend.rule=Host:${app_url}
             - traefik.frontend.redirect.entryPoint=https
@@ -17,4 +17,4 @@ services:
             - ghosts.proto=https
 
     php:
-        image: MaBre01/esi-tp-dc-php:dev
+        image: mabre/esi-tp-dc-php:dev
