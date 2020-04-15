@@ -53,11 +53,14 @@ The different docker-compose is to deploy this application in different environm
 The docker-compose.yml and the docker-compose.override.yml is to deploy the application locally.
 
 You can use this command :
-> docker-compose run --rm php
+
+    docker-compose run --rm php
+
 to use composer and php actions (you can add this command in your .bashrc).
 
 For example you can do that :
-> docker-compose run --rm php composer install
+
+    docker-compose run --rm php composer install
 
 ### Production environment
 

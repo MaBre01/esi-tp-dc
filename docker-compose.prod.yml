@@ -1,0 +1,20 @@
+version: '3.5'
+
+services:
+    db: 
+        environment: 
+            - MYSQL_ROOT_PASSWORD=${db_root_password}
+            - MYSQL_DATABASE=${db_name}
+            - MYSQL_USER=${db_user_name}
+            - MYSQL_PASSWORD=${db_user_password}
+
+    nginx:
+        image: mabre/esi-tp-dc-nginx:latest
+        labels: 
+            - traefik.frontend.rule=Host:${app_url}
+            - traefik.frontend.redirect.entryPoint=https
+            - ghosts.host=${app_url}
+            - ghosts.proto=https
+
+    php:
+        image: mabre/esi-tp-dc-php:latest

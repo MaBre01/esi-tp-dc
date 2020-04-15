@@ -1,11 +1,11 @@
-name: Test master branch
+name: Production deployment
 
 on:
     push:
         branches: [ master ]
     pull_request:
         branches: [ master ]
-
+        
 jobs:
     test_app:
         name: Test application
@@ -21,7 +21,34 @@ jobs:
             - name: Install dependencies
               run: composer install
               working-directory: ./app
-
+            
             - name: Test application
               run: php bin/phpunit
               working-directory: ./app
+
+    build_docker_image:
+        name: Build Docker image 
+        needs: test_app
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v2
+
+            - name: Build and push PHP image
+              uses: docker/build-push-action@v1
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_PASSWORD }}
+                repository: mabre/esi-tp-dc-php
+                dockerfile: ./.docker/php/Dockerfile
+                tags: latest
+                
+            - name: Build and push Nginx image
+              uses: docker/build-push-action@v1
+              with: 
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_PASSWORD }}
+                repository: mabre/esi-tp-dc-nginx
+                dockerfile: ./.docker/nginx/Dockerfile
+                tags: latest
