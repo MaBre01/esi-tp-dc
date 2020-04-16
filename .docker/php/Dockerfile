@@ -35,6 +35,10 @@ WORKDIR /var/www/html
 
 COPY --chown=www-data:www-data app .
 
+USER www-data
+RUN composer install
+USER root
+
 EXPOSE 9000
 
 COPY ./.docker/php/docker-entrypoint.sh /

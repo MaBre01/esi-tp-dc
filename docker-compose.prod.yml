@@ -18,3 +18,5 @@ services:
 
     php:
         image: mabre/esi-tp-dc-php:latest
+        volumes:
+            - ./.env:/var/www/html/.env
